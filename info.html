@@ -2,10 +2,11 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>最新の地震情報</title>
+    <title>最新地震情報</title>
     <link rel="stylesheet" href="style.css">
     <script>
         function fetchEarthquakeData() {
+            console.log("Fetching earthquake data...");//コンソールログ
             fetch('https://api.p2pquake.net/v2/history?codes=551&limit=1')
                 .then(response => response.json())
                 .then(data => {
@@ -13,28 +14,23 @@
                         const earthquake = data[0].earthquake;
                         const name = earthquake.hypocenter.name; // 震央地名
                         const maxScale = earthquake.maxScale / 10; // 最大震度
+                        const magnitude = earthquake.hypocenter.magnitude; //マグニチュード
                         const time = earthquake.time; // 発生日時
 
+                        
                         // データを表示する
-                        document.getElementById('earthquake-info').innerHTML = 
+                        document.getElementById('real_time_data').innerHTML = 
                             `<strong>震央地名:</strong> ${name}<br>` +
                             `<strong>最大震度:</strong> ${maxScale}<br>` +
-                            `<strong>発生日時:</strong> ${time}`;
+                            `<strong>マグニチュード:</strong> ${magnitude}<br>` +
+                            `<strong>発生日時:</strong> ${time}<br><br>` ;
+                            
                     }
-                })
+            })
                 .catch(error => console.error('データ取得中のエラー:', error));        
         }
-        
-
-        // ブザー音を再生する関数
-        function playBuzzer() {
-            var audio = new Audio('/static/buzzer.mp3'); // ブザー音のファイルパス
-            audio.play();
-        }
-
-
-        // 60秒ごとにデータを更新
-        setInterval(fetchEarthquakeData, 60000);
+        // n秒ごとにデータを更新10000=10秒
+        setInterval(fetchEarthquakeData, 10000);
 
         // 初期ロード時にデータ取得
         fetchEarthquakeData();
@@ -51,10 +47,38 @@
         </nav>
     </header>
     <main class="information">
-    <h2>最新の地震情報</h2>
-    <div id="earthquake-info"></div>
-    <!-- ブザー音を鳴らすボタン -->
-    <button onclick="playBuzzer()">ブザーを鳴らす</button>
-    </main>
+    <button id="testButton">テストデータ表示</button> <!--ボタン-->
+    <div id="real_time_data">ここにリアルタイムデータが表示されます</div>
+    <div id="test_data" style="display: none;">
+        <!-- Flaskから渡されるテストデータを表示 -->
+        <strong>震央地名:</strong>{{ test_data[0].earthquake.hypocenter.name }}<br>
+        <strong>最大震度:</strong>{{ test_data[0].earthquake.hypocenter.maxScale }}<br>
+        <strong>マグニチュード:</strong>{{ test_data[0].earthquake.hypocenter.magnitude}}<br>
+        <strong>発生日時:</strong>{{ test_data[0].earthquake.time}}<br>
+    </div>
+    </main> 
+    <script>
+    document.getElementById('testButton').addEventListener('click', function() {
+        
+        setTimeout(function() {    
+        // n秒後にテストデータを表示し、n秒後にリアルタイムデータに戻す
+            document.getElementById('real_time_data').style.display = 'none';
+            document.getElementById('test_data').style.display = 'block';
+    
+            playBuzzer(); // ブザー音を再生する
+
+            setTimeout(function() {
+                document.getElementById('real_time_data').style.display = 'block';
+                document.getElementById('test_data').style.display = 'none';
+            }, 10000);   //n秒数
+        }, 5000); 
+    });
+
+    function playBuzzer() {
+        var audio = new Audio('/static/buzzer.mp3'); //ブザーを鳴らす
+        audio.play();
+    }     
+        
+    </script>
 </body>
 </html>
